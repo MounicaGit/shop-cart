@@ -3,20 +3,21 @@ import SignIn from './src/features/auth/screens/SignIn';
 import SignUp from './src/features/auth/screens/SignUp';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-// You can import supported modules from npm
-import { Card } from 'react-native-paper';
+import { Provider as PaperProvider } from 'react-native-paper'
+import Home from './src/features/home/screens/home';
 
+const Stack = createNativeStackNavigator();
 export default function App() {
-  const Stack = createNativeStackNavigator();
   return (
-    <View style={styles.container}>
-      <NavigationContainer initialScreen="SignIn">
-        <Stack.Navigator>
+    <PaperProvider>
+      <NavigationContainer style={styles.container}>
+        <Stack.Navigator initialRouteName="SignIn">
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="Home" component={Home} />
         </Stack.Navigator>
       </NavigationContainer>
-    </View>
+    </PaperProvider>
   );
 }
 
