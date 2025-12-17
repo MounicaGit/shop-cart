@@ -4,18 +4,37 @@ import {
   Image,
   // TextInput,
   StyleSheet,
-  SafeAreaView,
   Pressable,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput, Divider, Checkbox } from 'react-native-paper';
 import Button from '../../../components/commons/Button';
 import { useNavigation } from '@react-navigation/native';
-import {useState} from 'react'
+import { useState } from 'react';
+import { Controller, set, useForm } from 'react-hook-form';
+import { emailRules, passwordRules } from '../../../utils/validators/rules';
 
 export default function SignIn() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState("")
+  const [showPassword, setShowPassword] = useState(false);
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onSubmit',
+  });
+
+  const onSubmit = () => {
+    navigateToHomePage()
+  };
 
   function renderHeader() {
     return (
@@ -28,24 +47,31 @@ export default function SignIn() {
     );
   }
 
-  const onChangeEmail = (email)=>{
-
-  }
+  const onChangeEmail = (email) => { };
 
   function renderEmailTextField() {
     return (
       <View style={styles.textInputView}>
         <Text>Email</Text>
-        <TextInput
-          onChangeText={(val) => {onChangeEmail(val)}}
-          value={email}
-          style={styles.textInput}
-          placeholder={'Enter your email'}
-          underlineColor={'transparent'}
-          placeholderTextColor={'grey'}
-          activeUnderlineColor={'transparent'}
-          left={<TextInput.Icon icon={'email'} size={20} color="grey" />}
+        <Controller
+          control={control}
+          name="email"
+          rules={emailRules}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              onChangeText={onChange}
+              value={value}
+              style={styles.textInput}
+              placeholder={'Enter your email'}
+              underlineColor={'transparent'}
+              placeholderTextColor={'grey'}
+              keyboardType='email-address'
+              activeUnderlineColor={'transparent'}
+              left={<TextInput.Icon icon={'email'} size={20} color="grey" />}
+            />
+          )}
         />
+        {errors.email && renderErrorMsg(errors.email.message)}
       </View>
     );
   }
@@ -55,27 +81,53 @@ export default function SignIn() {
       <View style={styles.textInputView}>
         <Text>Password</Text>
         <View>
-          <TextInput
-            onChangeText={() => {}}
-            style={styles.textInput}
-            placeholder={'Enter your password'}
-            placeholderTextColor={'grey'}
-            secureTextEntry={true}
-            underlineColor={'transparent'}
-            right={<TextInput.Icon icon={'eye-off'} size={20} color={'grey'} />}
-            activeUnderlineColor={'transparent'}
-            left={<TextInput.Icon icon="lock" size={20} color={'grey'} />}
+          <Controller
+            control={control}
+            name="password"
+            rules={passwordRules}
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                key={showPassword ? 'text' : 'hidden'}
+                onChangeText={onChange}
+                value={value}
+                style={styles.textInput}
+                placeholder={'Enter your password'}
+                placeholderTextColor={'grey'}
+                secureTextEntry={showPassword}
+                underlineColor={'transparent'}
+                right={
+                  <TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} size={20} color={'grey'} onPress={() => setShowPassword(prev => !prev)} />
+                }
+                activeUnderlineColor={'transparent'}
+                left={<TextInput.Icon icon="lock" size={20} color={'grey'} />}
+              />
+            )}
           />
+          {errors.password && renderErrorMsg(errors.password.message)}
         </View>
       </View>
     );
+  }
+
+  function renderErrorMsg(message) {
+    return (
+      <Text style={styles.errorMsg}>{message}</Text>)
+  }
+
+  function navigateToHomePage() {
+    navigation.push('Home');
+  }
+
+
+  function navigateToSignUpPage() {
+    navigation.push('SignUp');
   }
 
   function renderSignupSection() {
     return (
       <View style={styles.signUpSection}>
         <Text style={styles.signUpText}>Don't have an account?</Text>
-        <Pressable onPress={() => navigation.push('SignUp')}>
+        <Pressable onPress={() => { navigateToSignUpPage() }}>
           <Text style={styles.signupTextBtn}>Sign Up</Text>
         </Pressable>
       </View>
@@ -88,7 +140,7 @@ export default function SignIn() {
         <View style={styles.checkBoxView}>
           <Checkbox
             status={'checked'}
-            onPress={() => {}}
+            onPress={() => { }}
             color={'#2563eb'}
             style={styles.checkBoxStyle}
           />
@@ -145,13 +197,17 @@ export default function SignIn() {
   }
 
   function renderSignInButton() {
-    return <Button buttonText="Sign in" callback={() => {}} />;
+    return <Button buttonText="Sign in" callback={handleSubmit(onSubmit)} />;
   }
   return (
-    <SafeAreaView style={styles.container}>
-      {renderHeader()}
-      {renderCard()}
-    </SafeAreaView>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <ScrollView keyboardDismissMode='on-drag'>
+        <SafeAreaView style={styles.container}>
+          {renderHeader()}
+          {renderCard()}
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -271,4 +327,8 @@ const styles = StyleSheet.create({
   checkBoxStyle: {
     transform: [{ scale: 1.0 }],
   },
+  errorMsg: {
+    color: 'red',
+    paddingTop: 5,
+  }
 });
